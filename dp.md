@@ -206,3 +206,79 @@ public:
     }
 };
 ```
+
+### 背包问题的暴力解法——回溯
+
+```cpp
+这是标准的背包问题，以至于很多同学看了这个自然就会想到背包，甚至都不知道暴力的解法应该怎么解了
+这样其实是没有从底向上去思考，而是习惯性想到了背包，那么暴力的解法应该是怎么样的呢？
+每一件物品其实只有两个状态，取或者不取，所以可以使用回溯法搜索出所有的情况，那么时间复杂度就是$o(2^n)$，这里的n表示物品数量
+所以暴力的解法是指数级别的时间复杂度。进而才需要动态规划的解法来进行优化！
+```
+
+### [416. Partition Equal Subset Sum](https://leetcode.cn/problems/partition-equal-subset-sum/)
+
+#### 一维的 01 背包一定要自己画图理解
+
+```cpp
+class Solution {
+public:
+    bool canPartition(vector<int>& nums) {
+        // 1. 确定 dp table 以及下标的含义
+        // dp[j] 表示容量为 j 的背包，所背的物品价值最大为 dp[j]
+        // 2. 确定递推公式，物品重量为 nums[i]，物品价值为 nums[i]
+        // dp[j] = max(dp[j], dp[j - nums[i]] + nums[i])
+        // 3. dp table 如何初始化
+        // 初始化为 0，这样在递推公式中 dp[j] 才不会被初始值破坏
+        // 4. 确定遍历顺序
+        // i 从小到大，j 从大到小倒序遍历，自己画图理解
+
+        int sum = accumulate(nums.begin(), nums.end(), 0);
+        // special case
+        if (sum % 2 == 1) return false;
+
+        int target = sum / 2;
+        vector<int> dp(target + 1, 0);
+
+        for (int i = 0; i != nums.size(); ++i) {
+            for (int j = target; j >= nums[i]; --j) {
+                dp[j] = max(dp[j], dp[j - nums[i]] + nums[i]);
+            }
+        }
+
+        // 集合中的元素正好可以凑成总和 target
+        if (dp[target] == target) return true;
+        return false;
+    }
+};
+```
+
+### [1049. Last Stone Weight II](https://leetcode.cn/problems/last-stone-weight-ii/)
+
+```cpp
+class Solution {
+public:
+    int lastStoneWeightII(vector<int>& stones) {
+        // 1. 确定 dp table 以及下标的含义
+        // dp[j] 表示重量为 j 的背包，所背的重量最大为 dp[j]
+        // 2. 确定递推公式，石头重量为 nums[i]，石头价值为 nums[i]
+        // dp[j] = max(dp[j], dp[j - stones[i]] + stones[i])
+        // 3. dp table 如何初始化
+        // 初始化为 0，这样在递推公式中 dp[j] 才不会被初始值破坏
+        // 4. 确定遍历顺序
+        // i 从小到大，j 从大到小倒序遍历，自己画图理解
+
+        int sum = accumulate(stones.begin(), stones.end(), 0);
+        int target = sum / 2;
+        vector<int> dp(target + 1, 0);
+
+        for (int i = 0; i != stones.size(); ++i) {
+            for (int j = target; j >= stones[i]; --j) {
+                dp[j] = max(dp[j], dp[j - stones[i]] + stones[i]);
+            }
+        }
+
+        return (sum - dp[target]) - dp[target];
+    }
+};
+```
