@@ -220,6 +220,8 @@ public:
 
 #### 一维的 01 背包一定要自己画图理解
 
+#### 倒序遍历的原因是，本质上还是一个对二维数组的遍历，并且右下角的值依赖上一层左上角的值，因此需要保证左边的值仍然是上一层的，从右向左覆盖
+
 ```cpp
 class Solution {
 public:
@@ -279,6 +281,205 @@ public:
         }
 
         return (sum - dp[target]) - dp[target];
+    }
+};
+```
+
+### [494. Target Sum](https://leetcode.cn/problems/target-sum/)
+
+#### 感觉在考数学题了，没什么意思，看看就好
+
+```cpp
+class Solution {
+public:
+    int findTargetSumWays(vector<int>& nums, int target) {
+        // 思路：
+        // left 组合 - right 组合 = target
+        // left 组合 + right 组合 = sum
+        // left 组合 = (target + sum) / 2
+        // 即在 nums 找出和为 left 的组合
+
+        // 1. 确定 dp table 以及下标的含义
+        // dp[j] 表示填满 j 这么大容量的包，有 dp[j] 种方案
+        // 2. 确定递推公式，物品重量为 nums[i]，物品价值为 nums[i]
+        // dp[j] += dp[j - nums[i]]
+        // 3. dp table 如何初始化
+        // dp[0] = 1, 其他值初始化为 0
+        // 4. 确定遍历顺序
+        // i 从小到大，j 从大到小倒序遍历，自己画图理解
+
+        int sum = accumulate(nums.begin(), nums.end(), 0);
+        if ((sum + target) % 2) return 0;
+        if (abs(target) > sum) return 0;
+
+        int newTarget = (sum + target) / 2;
+        vector<int> dp(newTarget + 1, 0);
+        dp[0] = 1;
+        for (int i = 0; i != nums.size(); ++i) {
+            for (int j = newTarget; j >= nums[i]; --j) {
+                dp[j] += dp[j - nums[i]];
+            }
+        }
+
+        return dp[newTarget];
+    }
+};
+```
+
+### [518. Coin Change 2](https://leetcode.cn/problems/coin-change-2/)
+
+#### 需要再理解下
+
+```cpp
+class Solution {
+public:
+    int change(int amount, vector<int>& coins) {
+        // 1. 确定 dp table 以及下标的含义
+        // dp[j] 表示凑成总金额 j 的货币组合数为 dp[j]
+        // 2. 确定递推公式
+        // dp[j] += dp[j - coins[i]]
+        // 3. dp table 如何初始化
+        // dp[0] = 1, 其他值初始化为 0
+        // 4. 确定遍历顺序
+        // 外层遍历 coins，内层遍历 account，自己画图理解
+
+        vector<int> dp(amount + 1, 0);
+        dp[0] = 1;
+
+        for (int i = 0; i != coins.size(); ++i) {
+            for (int j = coins[i]; j <= amount; ++j) {
+                dp[j] += dp[j - coins[i]];
+            }
+        }
+
+        return dp[amount];
+    }
+};
+```
+
+### [377. Combination Sum IV](https://leetcode.cn/problems/combination-sum-iv/)
+
+```cpp
+class Solution {
+public:
+    int combinationSum4(vector<int>& nums, int target) {
+        // 1. 确定 dp table 以及下标的含义
+        // dp[j] 表示凑成 target 的排列数为 dp[j]
+        // 2. 确定递推公式
+        // dp[j] += dp[j - nums[i]]
+        // 3. dp table 如何初始化
+        // dp[0] = 1, 其他值初始化为 0
+        // 4. 确定遍历顺序
+        // 外层遍历 target，内层遍历 nums，自己画图理解
+
+        vector<int> dp(target + 1, 0);
+        dp[0] = 1;
+        
+        for (int j = 0; j <= target; ++j) {
+            for (int i = 0; i != nums.size(); ++i) {
+                if (j - nums[i] >= 0) dp[j] += dp[j - nums[i]];
+            }
+        }
+
+        return dp[target];
+    }
+};
+```
+
+### [70. Climbing Stairs](https://leetcode.cn/problems/climbing-stairs/)
+
+```cpp
+class Solution {
+public:
+    int climbStairs(int n) {
+        // 1. 确定 dp table 以及下标的含义
+        // dp[j] 表示到达楼顶的排列数为 dp[j]
+        // 2. 确定递推公式
+        // dp[j] += dp[j - i]
+        // 3. dp table 如何初始化
+        // dp[0] = 1, 其他值初始化为 0
+        // 4. 确定遍历顺序
+        // 外层遍历 target，内层遍历可以爬的最多台阶数，自己画图理解
+
+        vector<int> dp(n + 1, 0);
+        dp[0] = 1;
+
+        for (int j = 0; j <= n; ++j) {
+            for (int i = 1; i <= 2; ++i) { // 2 代表 Each time you can either climb 1 or 2 steps
+                if (j - i >= 0) dp[j] += dp[j - i];
+            }
+        }
+
+        return dp[n];
+    }
+};
+```
+
+### [322. Coin Change](https://leetcode.cn/problems/coin-change/)
+
+```cpp
+class Solution {
+public:
+    int coinChange(vector<int>& coins, int amount) {
+        // 1. 确定 dp table 以及下标的含义
+        // dp[j] 表示组成 amount 的最少 coins 数量为 dp[j]
+        // 2. 确定递推公式
+        // dp[j] = min(dp[j - coins[i]] + 1, dp[j])
+        // 3. dp table 如何初始化
+        // dp[0] = 0, 其他值初始化为 INT32_MAX
+        // 4. 确定遍历顺序
+        // 怎么遍历都行，因为无论排列还是组合都可以找到最少 coins 数量
+
+        vector<int> dp(amount + 1, INT32_MAX);
+        dp[0] = 0;
+
+        for (int i = 0; i < coins.size(); ++i) {
+            for (int j = coins[i]; j <= amount; ++j) {
+                // if (dp[j - coins[i]] != INT_MAX) // 如果dp[j - coins[i]]是初始值则跳过
+                dp[j] = min(dp[j - coins[i]] + 1, dp[j]);
+            }
+        }
+
+        return dp[amount] == INT32_MAX ? -1 : dp[amount];
+    }
+};
+```
+
+### [279. Perfect Squares](https://leetcode.cn/problems/perfect-squares/)
+
+```cpp
+class Solution {
+public:
+    int numSquares(int n) {
+        // 1. 确定 dp table 以及下标的含义
+        // dp[j] 表示组成 n 的最少 perfect squares 数量为 dp[j]
+        // 2. 确定递推公式, nums[i] 代表 1 到 n 的 perfect squares 数组
+        // dp[j] = min(dp[j - nums[i]] + 1, dp[j])
+        // 3. dp table 如何初始化
+        // dp[0] = 0, 其他值初始化为 INT32_MAX
+        // 4. 确定遍历顺序
+        // 怎么遍历都行，因为无论排列还是组合都可以找到最少 perfect squares 数量
+
+        // special case
+        if (n <= 0) return -1;
+
+        // 构造 nums[i]
+        vector<int> nums;
+        for (int i = 1; i <= n; ++i) {
+            if (i * i > n) break;
+            nums.push_back(i * i);
+        }
+
+        vector<int> dp(n + 1, INT32_MAX);
+        dp[0] = 0;
+
+        for (int i = 0; i < nums.size(); ++i) {
+            for (int j = nums[i]; j <= n; ++j) {
+                dp[j] = min(dp[j - nums[i]] + 1, dp[j]);
+            }
+        }
+
+        return dp[n];
     }
 };
 ```
