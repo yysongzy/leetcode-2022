@@ -483,3 +483,164 @@ public:
     }
 };
 ```
+
+### [198. House Robber](https://leetcode.cn/problems/house-robber/)
+
+#### 经过前几天的训练，这题已经可以根据递归四部曲立刻写出来了
+
+```cpp
+class Solution {
+public:
+    int rob(vector<int>& nums) {
+        // 1. 确定 dp table 以及下标的含义
+        // dp[i] 代表房子数量为 i 时可以偷的最大金额为 dp[i]
+        // 2. 确定递推公式
+        // dp[i] = max(dp[i - 1], dp[i - 2] + nums[i])
+        // 3. dp table 如何初始化
+        // dp[0] = nums[0], dp[1] = max(nums[0], nums[1]), 其他初始化为 0
+        // 4. 确定遍历顺序
+        // i 从小到大
+
+        // special case
+        if (nums.size() == 0) return -1;
+        if (nums.size() == 1) return nums[0];
+
+        vector<int> dp(nums.size() + 1, 0);
+        dp[0] = nums[0];
+        dp[1] = max(nums[0], nums[1]);
+
+        for (int i = 2; i < nums.size(); ++i) {
+            dp[i] = max(dp[i - 1], dp[i - 2] + nums[i]);
+        }
+
+        return dp[nums.size() - 1];
+    }
+};
+```
+
+### [213. House Robber II](https://leetcode.cn/problems/house-robber-ii/)
+
+#### 考虑两种情况，分类讨论
+
+```cpp
+class Solution {
+public:
+    int rob(vector<int>& nums) {
+        // 1. 确定 dp table 以及下标的含义
+        // dp[i] 代表房子数量为 i 时可以偷的最大金额为 dp[i]
+        // 2. 确定递推公式
+        // dp[i] = max(dp[i - 1], dp[i - 2] + nums[i])
+        // 3. dp table 如何初始化
+        // dp[0] = nums[0], dp[1] = max(nums[0], nums[1]), 其他初始化为 0
+        // 4. 确定遍历顺序
+        // i 从小到大
+
+        // special case
+        if (nums.size() == 0) return -1;
+        if (nums.size() == 1) return nums[0];
+        if (nums.size() == 2) return max(nums[0], nums[1]);
+
+        return max(robRange(nums, 0, nums.size() - 1), robRange(nums, 1, nums.size()));
+    }
+
+    int robRange(const vector<int>& nums, int begin, int end) {
+        if (begin > end) return -1;
+        if (begin == end) return nums[begin];
+
+        vector<int> dp(nums.size() + 1, 0);
+        dp[begin] = nums[begin];
+        dp[begin + 1] = max(nums[begin], nums[begin + 1]);
+
+        for (int i = begin + 2; i < end; ++i) {
+            dp[i] = max(dp[i - 1], dp[i - 2] + nums[i]);
+        }
+
+        return dp[end - 1];
+    }
+};
+```
+
+### [337. House Robber III](https://leetcode.cn/problems/house-robber-iii/)
+
+#### recursive
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    unordered_map<TreeNode*, int> memo;
+
+    int rob(TreeNode* root) {
+        // base case
+        if (!root) return 0;
+        else if (memo.count(root)) return memo[root];
+
+        if (!root->left && !root->right) return root->val;
+
+        // 偷父节点
+        int v1 = root->val;
+        if (root->left) v1 += rob(root->left->left) + rob(root->left->right);
+        if (root->right) v1 += rob(root->right->left) + rob(root->right->right);
+        // 不偷父节点
+        int v2 = rob(root->left) + rob(root->right);
+
+        int res = max(v1, v2);
+        memo[root] = res;
+        return res;
+    }
+};
+```
+
+#### dp
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    int rob(TreeNode* root) {
+        // 1. 确定 dp table 以及下标的含义
+        // dp table 代表下标为 0 记录偷该节点所得到的的最大金钱，下标为 1 记录不偷该节点所得到的的最大金钱
+        // 2. 确定递推公式
+        // max(rob, noRob), rob = root->val + leftPair.second + rightPair.second, noRob = max(leftPair.first, leftPair.second) + max(rightPair.first, rightPair.second)
+        // 3. dp table 如何初始化
+        // 初始化为 0
+        // 4. 确定遍历顺序
+        // 后序遍历
+
+        auto pair = robTree(root);
+        return max(pair.first, pair.second);
+    }
+
+    std::pair<int, int> robTree(TreeNode* root) {
+        // base case
+        if (!root) return {0, 0};
+
+        auto leftPair = robTree(root->left);
+        auto rightPair = robTree(root->right);
+        int rob = root->val + leftPair.second + rightPair.second;
+        int noRob = max(leftPair.first, leftPair.second) + max(rightPair.first, rightPair.second);
+
+        return {rob, noRob};
+    }
+};
+```
